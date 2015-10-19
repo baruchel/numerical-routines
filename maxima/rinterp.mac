@@ -1,0 +1,22 @@
+/*
+  Adapted from: http://axiom-wiki.newsynthesis.org/RationalInterpolation
+*/
+rinterp(xlist, ylist, m, k) := block([collist, i, j, x, l, ol],
+  if length(xlist) # length(ylist)
+    then error("Different number of points and values."),
+  if length(xlist) # m+k+1
+    then error("Wrong number of points."),
+  collist: genmatrix(lambda([i,j],1), m+k+1, m+k+2),
+  for j:1 thru max(m,k) do
+    for i: 1 thru m+k+1 do
+      collist[i,j+1]: collist[i,j] * xlist[i],
+  for j:1 thru k+1 do
+    for i:1 thru m+k+1 do
+      collist[i,m+k+3-j]: -collist[i,k+2-j]*ylist[i],
+  x: makelist( gensym(), k, m+k+2 ),
+  ol: linsolve_params, linsolve_params: true,
+  l: linsolve(makelist(sum( x[j]*collist[i,j], j, 1, m+k+2 ), i, m+k+1), x),
+  for j:1 thru length(%rnum_list) do l:subst(1, %rnum_list[j], l),
+  linsolve_params: ol,
+  sum( rhs(l[j])*('x)^(j-1), j, 1, m+1 ) /
+    sum( rhs(l[m+1+j])*('x)^(j-1), j, 1, k+1 ));
