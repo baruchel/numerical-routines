@@ -20,7 +20,7 @@ Pslq : with _
       teps : Float := prec * 16.0
       gam : Float := 1.2
     
-      ++ Compute the vector s
+      -- Compute the vector s
       s : OneDimensionalArray(Float) := new(n, 0)
       s.n := abs( x.n )
       t : Float := x.n * x.n
@@ -28,14 +28,14 @@ Pslq : with _
         t := t + x.i * x.i
         s.i := sqrt(t)
     
-      ++ Normalize the vector x, s
+      -- Normalize the vector x, s
       t := s.1
       y : OneDimensionalArray(Float) := new(n, 0)
       for i in 1..n repeat
         y.i := x.i / t
         s.i := s.i / t
     
-      ++ Construct matrix H, a, b
+      -- Construct matrix H, a, b
       h: TwoDimensionalArray Float := new(n, (n-1) pretend PositiveInteger, 0.0)
       a: TwoDimensionalArray Float := new(n, n, 0.0)
       b: TwoDimensionalArray Float := new(n, n, 0.0)
@@ -45,7 +45,7 @@ Pslq : with _
           h(i,j) := if i=j then s.(j+1) / s.j _
                            else - y.i * y.j / (s.j * s.(j+1) )
     
-      ++ Reduce matrix H
+      -- Reduce matrix H
       for i in 2..n repeat
         for j in (i-1)..1 by -1 repeat
           t := round( h(i,j) / h(j,j) )
