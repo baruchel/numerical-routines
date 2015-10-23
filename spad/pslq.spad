@@ -4,7 +4,8 @@
 ++ Description:
 ++   This is a spad version of the famous PSLQ algorithm by D.H. Bailey.
 ++   The code is adapted from a C++ example in the libqd package.
-Pslq : with ( pslq : (OneDimensionalArray(Float), Float) -> OneDimensionalArray(Float) )
+Pslq : with _
+  pslq : (OneDimensionalArray(Float), Float) -> OneDimensionalArray(Float)
   == add
     pslq(x:OneDimensionalArray(Float), prec:Float):OneDimensionalArray(Float) ==
       n : NonNegativeInteger := #x
