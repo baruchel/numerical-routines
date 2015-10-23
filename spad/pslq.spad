@@ -7,7 +7,7 @@
 Pslq : with _
   pslq : (OneDimensionalArray(Float), Float) -> OneDimensionalArray(Float)
   ++ pslq(x, prec) returns an array of integer coefficients for detecting
-  ++   a relation between real numbers from the array x.
+  ++   an integer relation between real numbers from the array x.
   ++   Example:
   ++     digits(72)
   ++     z  := numeric( 4 + 3/2*%pi - %e)
