@@ -7,9 +7,9 @@ pslq(x:OneDimensionalArray(Float), prec:Float):OneDimensionalArray(Integer) ==
     s : OneDimensionalArray(Float) := new(n, 0)
     s.n := abs( x.n )
     t : Float := x.n * x.n
-    for i in 1..(n-1) repeat
-        t := t + x.(n-i) * x.(n-i)
-        s.(n-i) := sqrt(t)
+    for i in (n-1)..1 by -1 repeat
+        t := t + x.i * x.i
+        s.i := sqrt(t)
 
     ++ Normalize the vector x, s
     t := s.1
