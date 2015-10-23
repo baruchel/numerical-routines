@@ -6,6 +6,14 @@
 ++   The code is adapted from a C++ example in the libqd package.
 Pslq : with _
   pslq : (OneDimensionalArray(Float), Float) -> OneDimensionalArray(Float)
+  ++ pslq(x, prec) returns an array of integer coefficients for detecting
+  ++   a relation between real numbers from the array x.
+  ++   Example:
+  ++     digits(72)
+  ++     z  := numeric( 4 + 3/2*%pi - %e)
+  ++     v := oneDimensionalArray([z, 1.0, %pi, %e])
+  ++     pslq(v, 1.0E-36)
+  ++         [- 2.0,8.0,3.0,- 2.0]
   == add
     pslq(x:OneDimensionalArray(Float), prec:Float):OneDimensionalArray(Float) ==
       n : NonNegativeInteger := #x
