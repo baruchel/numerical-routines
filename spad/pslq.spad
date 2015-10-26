@@ -4,6 +4,7 @@
 ++ Description:
 ++   This is a spad version of the famous PSLQ algorithm by D.H. Bailey.
 ++   The code is adapted from a C++ example in the libqd package.
+++   An algdep function (using the PSLQ algorithm) is also provided.
 Pslq() : Exports == Implementation where
 
   Exports == with
@@ -16,10 +17,19 @@ Pslq() : Exports == Implementation where
     ++     z  := numeric( 4 + 3/2*%pi - %e)
     ++     v := vector([z, 1.0, %pi, %e])
     ++     pslq(v, 1.0E-36)
-    ++         [- 2.0,8.0,3.0,- 2.0]
+    ++         [- 2,8,3,- 2]
     setPslqMaxItr : PositiveInteger -> PositiveInteger
     ++ setPslqMaxItr(n) sets the maximum number of iterations allowed in the
     ++   PSLQ algorithm and returns the previous value for this setting.
+    algdep : (Float, PositiveInteger, Float) -> UnivariatePolynomial(x,Integer)
+    ++ algdep(x,n,prec) attempts to find an algebraic relation of degree n for
+    ++   the value x.
+    ++   Example:
+    ++     digits(72)
+    ++     phi := numeric( (1+sqrt(5))/2 )
+    ++     algdep(phi,2,1.0E-36)
+    ++            2
+    ++         - x  + x + 1
 
   Implementation == add
 
@@ -111,7 +121,7 @@ Pslq() : Exports == Implementation where
                 a(i,k) := a(i,k) - u * a(j,k)
                 b(k,j) := b(k,j) + u * b(k,i)
       
-          m_val := 1.0E-308
+          m_val := 1.0E-308 -- TODO
           for j in 1..(n-1) repeat
             t := abs( h(j,j) )
             if t > m_val then m_val := t
@@ -125,3 +135,14 @@ Pslq() : Exports == Implementation where
           itr := itr + 1
 
         new(n,0)
+
+      algdep(z:Float, n:PositiveInteger, prec:Float):UnivariatePolynomial(x,Integer) ==
+        v : Vector(Float) := new(n+1,1)
+        for i in 2..(n+1) repeat
+          v(i) := v(i-1) * z
+        w : Vector(Integer) := pslq(v,prec)
+        x : Symbol
+        r : UnivariatePolynomial(x,Integer) := 0
+        for k in 0..n repeat
+          r := r + monomial(w(k+1),k)$UnivariatePolynomial(x,Integer)
+        r
