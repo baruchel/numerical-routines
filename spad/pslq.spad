@@ -139,7 +139,8 @@ Pslq() : Exports == Implementation where
                 a(i,k) := a(i,k) - u * a(j,k)
                 b(k,j) := b(k,j) + u * b(k,i)
       
-          m_val := 1.0E-308 -- TODO
+          -- m_val := 1.0E-308 -- TODO: why wasn't it 0 in original code?
+          m_val := 0
           for j in 1..(n-1) repeat
             t := abs( h(j,j) )
             if t > m_val then m_val := t
