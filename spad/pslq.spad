@@ -8,7 +8,7 @@ Pslq() : Exports == Implementation where
 
   Exports == with
 
-    pslq : (Vector(Float), Float) -> Vector(Float)
+    pslq : (Vector(Float), Float) -> Vector(Integer)
     ++ pslq(x, prec) returns an array of integer coefficients for detecting
     ++   an integer relation between real numbers from the array x.
     ++   Example:
@@ -22,14 +22,15 @@ Pslq() : Exports == Implementation where
     ++   PSLQ algorithm and returns the previous value for this setting.
 
   Implementation == add
-      maxitr : PositiveInteger := 256
+
+      maxItr : PositiveInteger := 256
   
       setPslqMaxItr(n:PositiveInteger):PositiveInteger ==
-        o : PositiveInteger := maxitr
-        maxitr := n
-        o
+        oldValue : PositiveInteger := maxItr
+        maxItr := n
+        oldValue
   
-      pslq(x:Vector(Float), prec:Float):Vector(Float) ==
+      pslq(x:Vector(Float), prec:Float):Vector(Integer) ==
         n : NonNegativeInteger := #x
         teps : Float := prec * 16.0
         gam : Float := 1.2
@@ -51,8 +52,8 @@ Pslq() : Exports == Implementation where
       
         -- Construct matrix H, a, b
         h: Matrix Float := new(n, (n-1) ::PositiveInteger, 0)
-        a: Matrix Float := new(n, n, 0)
-        b: Matrix Float := new(n, n, 0)
+        a: Matrix Integer := new(n, n, 0)
+        b: Matrix Integer := new(n, n, 0)
         for i in 1..n repeat
           a(i,i) := 1; b(i,i) := 1
           for j in 1..min(i,n-1) repeat
@@ -60,21 +61,23 @@ Pslq() : Exports == Implementation where
                              else - y(i) * y(j) / (s(j) * s(j+1) )
       
         -- Reduce matrix H
+        u : Integer
         for i in 2..n repeat
           for j in (i-1)..1 by -1 repeat
             t := round( h(i,j) / h(j,j) )
+            u := retract(t)@Integer
             y(j) := y(j) + t * y(i)
             for k in 1..j repeat h(i,k) := h(i,k) - t * h(j,k)
             for k in 1..n repeat
-              a(i,k) := a(i,k) - t * a(j,k)
-              b(k,j) := b(k,j) + t * b(k,i)
+              a(i,k) := a(i,k) - u * a(j,k)
+              b(k,j) := b(k,j) + u * b(k,i)
       
         m : NonNegativeInteger
         m_val : Float
         g: Float
         itr : NonNegativeInteger := 0
       
-        while itr < maxitr repeat
+        while itr < maxItr repeat
           m_val := -1
           g := gam
       
@@ -101,11 +104,12 @@ Pslq() : Exports == Implementation where
           for i in (m+1)..n repeat
             for j in min(i-1,m+1)..1 by -1 repeat
               t := round( h(i,j)/h(j,j) )
+              u := retract(t)@Integer
               y(j) := y(j) + t * y(i)
               for k in 1..j repeat h(i,k) := h(i,k) - t * h(j,k)
               for k in 1..n repeat
-                a(i,k) := a(i,k) - t * a(j,k)
-                b(k,j) := b(k,j) + t * b(k,i)
+                a(i,k) := a(i,k) - u * a(j,k)
+                b(k,j) := b(k,j) + u * b(k,i)
       
           m_val := 1.0E-308
           for j in 1..(n-1) repeat
@@ -119,3 +123,5 @@ Pslq() : Exports == Implementation where
               return column(b,m)
       
           itr := itr + 1
+
+        new(n,0)
