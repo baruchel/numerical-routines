@@ -9,6 +9,9 @@ Pslq() : Exports == Implementation where
 
   Exports == with
 
+    setPslqMaxItr : PositiveInteger -> PositiveInteger
+    ++ setPslqMaxItr(n) sets the maximum number of iterations allowed in the
+    ++   PSLQ algorithm and returns the previous value for this setting.
     pslq : (Vector(Float), Float) -> Vector(Integer)
     ++ pslq(x, prec) returns an array of integer coefficients for detecting
     ++   an integer relation between real numbers from the array x.
@@ -18,9 +21,16 @@ Pslq() : Exports == Implementation where
     ++     v := vector([z, 1.0, %pi, %e])
     ++     pslq(v, 1.0E-36)
     ++         [- 2,8,3,- 2]
-    setPslqMaxItr : PositiveInteger -> PositiveInteger
-    ++ setPslqMaxItr(n) sets the maximum number of iterations allowed in the
-    ++   PSLQ algorithm and returns the previous value for this setting.
+    pslq : Vector(Float) -> Vector(Integer)
+    ++ pslq(x) returns an array of integer coefficients for detecting
+    ++   an integer relation between real numbers from the array x by
+    ++   using a reasonnable precision.
+    ++   Example:
+    ++     digits(72)
+    ++     z  := numeric( 4 + 3/2*%pi - %e)
+    ++     v := vector([z, 1.0, %pi, %e])
+    ++     pslq(v)
+    ++         [- 2,8,3,- 2]
     algdep : (Float, PositiveInteger, Float) -> UnivariatePolynomial(x,Integer)
     ++ algdep(x,n,prec) attempts to find an algebraic relation of degree n for
     ++   the value x.
@@ -28,6 +38,15 @@ Pslq() : Exports == Implementation where
     ++     digits(72)
     ++     phi := numeric( (1+sqrt(5))/2 )
     ++     algdep(phi,2,1.0E-36)
+    ++            2
+    ++         - x  + x + 1
+    algdep : (Float, PositiveInteger) -> UnivariatePolynomial(x,Integer)
+    ++ algdep(x,n) attempts to find an algebraic relation of degree n for
+    ++   the value x by using a reasonnable precision.
+    ++   Example:
+    ++     digits(72)
+    ++     phi := numeric( (1+sqrt(5))/2 )
+    ++     algdep(phi,2)
     ++            2
     ++         - x  + x + 1
 
@@ -85,9 +104,8 @@ Pslq() : Exports == Implementation where
         m : NonNegativeInteger
         m_val : Float
         g: Float
-        itr : NonNegativeInteger := 0
       
-        while itr < maxItr repeat
+        for itr in 1..maxItr repeat
           m_val := -1
           g := gam
       
@@ -131,10 +149,11 @@ Pslq() : Exports == Implementation where
             if t < teps then
               m := i
               return column(b,m)
-      
-          itr := itr + 1
 
         new(n,0)
+
+      pslq(x:Vector(Float)):Vector(Integer) ==
+        pslq(x, 10.0^(-digits()+8))
 
       algdep(z:Float, n:PositiveInteger, prec:Float):UnivariatePolynomial(x,Integer) ==
         v : Vector(Float) := new(n+1,1)
@@ -146,3 +165,6 @@ Pslq() : Exports == Implementation where
         for k in 0..n repeat
           r := r + monomial(w(k+1),k)$UnivariatePolynomial(x,Integer)
         r
+
+      algdep(z:Float, n:PositiveInteger):UnivariatePolynomial(x,Integer) ==
+        algdep(z,n, 10.0^(-digits()+8))
