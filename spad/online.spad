@@ -26,7 +26,7 @@ Online() : Exports == Implementation where
     ++   (because of a bug on the server side related to a bad compression
     ++   format, the request is performed by the program 'curl' before
     ++   being parsed by 'w3m'.
-    oeis : Vector(Integer) -> Void
+    oeis : (List(Integer),Boolean) -> Void
     ++ oeis(l) returns TODO
 
   Implementation == add
@@ -72,4 +72,18 @@ Online() : Exports == Implementation where
         "system curl -s 'http://mrob.com/pub/ries/ries.php?target=", _
         fixedFloatToString(x,48), "&rst=' | w3m -T text/html -dump", _
         " | sed -e '1,2d;/For a more thorough search/,$d'" ] _
+      )$MoreSystemCommands
+
+
+      -- w3m -T text/html -dump 'http://oeis.org/search?q=1,2,3,6,11,23,47,106,235'
+      -- w3m -T text/html -dump 'http://oeis.org/search?q=909+7798'
+    oeis(v:List(Integer),strict:Boolean):Void ==
+      n : Integer := #v
+      -- if n == 0 then return()
+      r : String := convert( v(1) )@String
+      for i in 2..n repeat
+        r := concat[ r, if strict then "," else "+", convert( v(i) )@String ]
+      systemCommand( concat [ _
+        "system w3m -T text/html -dump 'http://oeis.org/search?q=", r, "'", _
+        " | sed -e '1,/\[Search\]/d;/^Lookup/,$d'" ] _
       )$MoreSystemCommands
