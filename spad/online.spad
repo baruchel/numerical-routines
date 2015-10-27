@@ -1,0 +1,75 @@
+)abbrev package ONLINE Online
+++ Author: Thomas Baruchel <baruchel@gmx.com>
+++ Date: 2015/10/27
+++ Description:
+++   Collection of routines using the external 'w3m' program (and some common other
+++   tools like 'sed') for accessing various online databases.
+Online() : Exports == Implementation where
+
+  Exports == with
+
+    isc : Float -> Void
+    ++ isc(x) performs a request to the Inverse Symbolic Calculator (ISC)
+    ++   at  https://isc.carma.newcastle.edu.au/advancedCalc by using an
+    ++   encrypted connexion to the server and displays the output.
+    cecmIsc : (Float, String) -> Void
+    ++ cecmIsc(x, type) performs a request to the Inverse Symbolic Calculator 
+    ++   hosted at the CECM (http://wayback.cecm.sfu.ca) and displays
+    ++   the output; the search type is one of:
+    ++     simple, smart, genexp, intrel, browse
+    cecmIsc : Float -> Void
+    ++ cecmIsc(x) performs a request to the Inverse Symbolic Calculator 
+    ++   hosted at the CECM (http://wayback.cecm.sfu.ca) and displays
+    ++   the output; the search type is set to 'simple'.
+    ries : Float -> Void
+    ++ ries(x) performs a request to the TODO
+    ++   (because of a bug on the server side related to a bad compression
+    ++   format, the request is performed by the program 'curl' before
+    ++   being parsed by 'w3m'.
+    oeis : Vector(Integer) -> Void
+    ++ oeis(l) returns TODO
+
+  Implementation == add
+
+    fixedFloatToString(x:Float, n:PositiveInteger):String ==
+      s : String := convert(retract(round(abs(x) * (10.0^(n-1))))@Integer)@String
+      d : Integer := #s
+      -- Warning : leading zeros
+      for i in 1..(n-d) repeat
+        s:= concat("0",s)
+        d := d + 1
+      -- Warning : 10000000000000000. (without a trailing 0 for large numbers)
+      concat[ if x<0 then "-" else "", s(1..(d-n+1)), "." , s((d-n+2)..n) ]
+
+    isc(x:Float):Void ==
+      systemCommand( concat [ _
+        "system echo input=", fixedFloatToString(x,48), " | w3m -post - ", _
+        "-T text/html -dump https://isc.carma.newcastle.edu.au/advancedCalc", _
+        " | sed -e '1,/^Inverse Symbolic Calculator/d;/^Original ISC/,$d'" ] _
+      )$MoreSystemCommands
+
+    -- Types: simple, smart, genexp, intrel, browse
+    --   simple: Simple Lookup and Browser for any number.
+    --   smart:  Lookup for any number.
+    --   genexp: Expansions for real numbers of at least 16 digits.
+    --   intrel: Relation Algorithms for any number.
+    cecmIsc(x:Float, t:String):Void ==
+        -- Detect a line containing the same character ------ and delete everything from
+        -- that point:   /^\([^ ]\)\1*$/,$d
+      systemCommand( concat [ "system w3m -T text/html -dump -graph ", _
+        "'http://wayback.cecm.sfu.ca/cgi-bin/isc/lookup?number=", _
+        fixedFloatToString(x,48), "&lookup_type=", t, "' | sed -e ", _
+        "'1,/^Results of the search:/d;/^Browse around/,$d;", _
+        "/^Running the browser/,$d;/^\[BACK\]/d;/^\[FORWARD\]/,$d;", _
+        "/^\([^ ]\)\1*$/,$d'" ] _
+      )$MoreSystemCommands
+
+    cecmIsc(x:Float):Void ==
+      cecmIsc(x, "simple")
+
+    ries(x:Float):Void ==
+      systemCommand( concat [ _
+        "system curl -s 'http://mrob.com/pub/ries/ries.php?target=", _
+        fixedFloatToString(x,48), "&rst=' | w3m -T text/html -dump", _
+        " | sed -e '1,2d;/For a more thorough search/,$d'" ] _
+      )$MoreSystemCommands
