@@ -147,9 +147,7 @@ Pslq() : Exports == Implementation where
       
           for i in 1..n repeat
             t := abs( y.i )
-            if t < teps then
-              m := i
-              return column(b,m)
+            if t < teps then return column(b,i)
 
         new(n,0)
 
