@@ -1,0 +1,75 @@
+pslqMaxItr: 256$
+
+pslq(x, prec) := block([
+                        n:length(x),
+                        teps:prec*1.6b1,
+                        gam: 1.2b0,
+                        t, y, s, h, a, b, m,
+                        done: false
+                      ],
+  /* Compute the vector s */
+  s:makelist(0.0b0, n),
+  s[n]: bfloat(abs( x[n] )),
+  t: x[n]*x[n],
+  for i:(n-1) step -1 thru 1 do (
+    t: bfloat(t + x[i]*x[i]),
+    s[i]: sqrt(t) ),
+  /* Normalize the vector x, s */
+  t: s[1],
+  y: makelist( bfloat(x[i]/t), i, n),
+  s: map(lambda([z], z/t), s),
+  /* Construct matrix H, a, b */
+  h: zeromatrix(n, n-1),
+  a: ident(n),
+  b: ident(n),
+  for i:1 thru n do
+    for j:1 thru min(i, n-1) do
+      h[i,j]: if i=j then s[j+1]/s[j] else -y[i]*y[j]/(s[j]*s[j+1]),
+  /* Reduce matrix H */
+  for i:2 thru n do
+    for j:(i-1) step -1 thru 1 do (
+      t: round( h[i,j]/h[j,j] ),
+      y[j]: y[j]+t*y[i],
+      for k:1 thru j do h[i,k]: h[i,k] - t *h[j,k],
+      for k:1 thru n do (
+        a[i,k]: a[i,k] - t * a[j,k],
+        b[k,j]: b[k,j] + t * b[k,i] ) ),
+
+  for itr:1 while (itr <= pslqMaxItr) and (not done)
+          do block([ m_val:-1, g:gam ],
+    for i:1 thru n-1 do (
+      t: abs(g * h[i,i]),
+      if t > m_val then ( m_val:t, m:i ),
+      g: g*gam),
+    t: y[m], y[m]: y[m+1], y[m+1]: t,
+    a:rowswap(a, m, m+1),
+    h:rowswap(h, m, m+1),
+    b:columnswap(b,m, m+1),
+    if m < n-1 then block([t0: sqrt( h[m,m]^2 + h[m,m+1]^2), t1, t2, t3, t4],
+      t1: h[m,m]/ t0,
+      t2: h[m,m+1]/ t0,
+      for i:m thru n do (
+        t3: h[i,m],
+        t4: h[i,m+1],
+        h[i,m]: t1*t3 + t2*t4,
+        h[i,m+1]: t1*t4 - t2*t3)
+    ),
+    for i:m+1 thru n do
+      for j:min(i-1,m+1) step -1 thru 1 do (
+        t: round( h[i,j]/h[j,j] ),
+        y[j]: y[j] + t * y[i],
+        for k:1 thru j do h[i,k]: h[i,k] - t*h[j,k],
+        for k:1 thru n do (
+          a[i,k]: a[i,k] - t * a[j,k],
+          b[k,j]: b[k,j] + t * b[k,i] )),
+    
+    m_val: 0,
+    for j: 1 thru n-1 do (
+      t: abs( h[j,j] ),
+      if t > m_val then m_val: t),
+    for i:1 thru n do (
+      t: abs( y[i] ),
+      if t < teps then (done: true, m: i))
+  ),
+  if done then makelist(b[i,m],i,n) else makelist(0, n)
+);
