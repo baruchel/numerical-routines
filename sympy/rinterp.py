@@ -12,8 +12,10 @@ Exactly four arguments are required: two lists containing x and f(x) values;
 the degree in the expected numerator and the degree in the expected
 denominator.
 
+Code is adapted from http://axiom-wiki.newsynthesis.org/RationalInterpolation
+
 Example:
---------
+========
 
     >>> from fractions import Fraction
     >>> x = [1, 2, 3, 4, 5, 6]
