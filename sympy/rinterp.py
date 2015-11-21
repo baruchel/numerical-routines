@@ -1,7 +1,3 @@
-# 
-#   Adapted from: http://axiom-wiki.newsynthesis.org/RationalInterpolation
-# 
-
 import sympy
 
 def rinterp(x, y, m, k):
