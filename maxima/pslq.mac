@@ -1,4 +1,4 @@
-pslqMaxItr: 256$
+define_variable(pslqMaxItr, 256, integer);
 
 pslq(x, prec) := block([
                         n:length(x),
@@ -36,10 +36,10 @@ pslq(x, prec) := block([
         b[k,j]: b[k,j] + t * b[k,i] ) ),
 
   for itr:1 while (itr <= pslqMaxItr) and (not done)
-          do block([ m_val:-1, g:gam ],
+          do block([ mval:-1, g:gam ],
     for i:1 thru n-1 do (
       t: abs(g * h[i,i]),
-      if t > m_val then ( m_val:t, m:i ),
+      if t > mval then ( mval:t, m:i ),
       g: g*gam),
     t: y[m], y[m]: y[m+1], y[m+1]: t,
     a:rowswap(a, m, m+1),
@@ -63,10 +63,10 @@ pslq(x, prec) := block([
           a[i,k]: a[i,k] - t * a[j,k],
           b[k,j]: b[k,j] + t * b[k,i] )),
     
-    m_val: 0,
+    mval: 0,
     for j: 1 thru n-1 do (
       t: abs( h[j,j] ),
-      if t > m_val then m_val: t),
+      if t > mval then mval: t),
     for i:1 thru n do (
       t: abs( y[i] ),
       if t < teps then (done: true, m: i))
