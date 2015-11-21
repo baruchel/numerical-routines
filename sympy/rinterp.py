@@ -5,8 +5,13 @@ def rinterp(x, y, m, k):
 any integral domain.
 
 Exactly four arguments are required: two lists containing x and f(x) values;
-the degree in the expected numerator and the degree in the expected
-denominator.
+the numer of terms in the expected numerator and in the expected denominator.
+Thus 1 had to be added to the highest degree in the numerator and in the
+denominator (see example below).
+
+When calling rinterp(x, y, m, k), the length of both lists x and y must be
+equal for obvious reasons; furthermore their length must exactly match
+the sum m+k+1 (see example below).
 
 Code is adapted from http://axiom-wiki.newsynthesis.org/RationalInterpolation
 
