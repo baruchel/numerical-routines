@@ -5,6 +5,22 @@
 import sympy
 
 def rinterp(x, y, m, k):
+    """Returns a rational interpolation, where the data points are element of
+any integral domain.
+
+Exactly four arguments are required: two lists containing x and f(x) values;
+the degree in the expected numerator and the degree in the expected
+denominator.
+
+Example:
+--------
+
+    >>> from fractions import Fraction
+    >>> x = [1, 2, 3, 4, 5, 6]
+    >>> y=map(lambda x: sympify(Fraction(x)), ["-1","0","2","22/5","7","68/7"])
+    >>> rinterp(x, y, 3, 2)
+    (3*x**2 - 7*x + 2)/(x + 1)
+    """
     if len(x) != len(y):
         raise sympy.ShapeError("Different number of points and values.")
     if len(x) != m+k+1:
