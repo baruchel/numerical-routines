@@ -81,9 +81,13 @@
 (defun ggf (v)
   (let ((l (recurrence-vector v)))
     (if l
-      (let ((s (labels ((rl (x) (if (= 0 (car x)) (rl (cdr x)) x)))
-              (nreverse (rl (nreverse (convolution-poly v l)))))))
-        (list s l))
+      (labels ((rl (x) (if (= 0 (car x)) (rl (cdr x)) x))
+               (ql (m x) (if x (ql (lcm m (denominator (car x))) (cdr x)) m)))
+        (let ((s (nreverse (rl (nreverse (convolution-poly v l)))))
+              (c (ql 1 (nreverse (rl (nreverse (convolution-poly v l)))))))
+          (list
+            (mapcar #'(lambda (a) (* c a)) s)
+            (mapcar #'(lambda (a) (* c a)) l))))
       NIL)))
-    
+    ;1/2 5/3 8/3 5/3 -23/6 -175/12 -599/24 -895/48 2713/96 24305/192 88969/384 153185/768 -301703/1536 -3346735/3072
 ; TODO: multiply s by lcm of denominators
