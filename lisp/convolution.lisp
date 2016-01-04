@@ -11,17 +11,15 @@
              (if d (sub (cdr c) (cdr d) (+ s (* (car c) (car d)))) s)))
     (main a b NIL NIL)))
 
-; Convolution between two series (lists of coefficients); the final size is the
-; size of the longest list (the shortest list is assumed to represent a finite
-; sum of coefficients rather than an infinite series).
-; The shortest list MUST be the second one.
-(defun convolution-full (a b)
+; Convolution between one series and one polynomial; the final size is the
+; size of the longest list (first argument).
+; The polynomial (second argument) MUST have less coefficients than the series.
+(defun convolution-poly (a b)
   (labels ((main (ar br rev comp)
-             (if (or ar br)
-               (let* ((ar2 (if ar ar '(0)))
-                      (br2 (if br br '(0)))
+             (if ar
+               (let* ((br2 (if br br '(0)))
                       (x (cons (car br2) rev)))
-                 (main (cdr ar2) (cdr br2) x
+                 (main (cdr ar) (cdr br2) x
                        (cons (sub a x 0) comp)))
                (nreverse comp)))
            (sub (c d s)
@@ -81,7 +79,11 @@
     (mapcar #'(lambda (a) (* c a)) l)))
 
 (defun ggf (v)
-  (let* ((l (recurrence-vector v))
-         (s (labels ((rl x) (if (= 0 (car x)) (cdr x) x))
-              (nreverse (rl (nreverse (convolution-full v l)))))))
-    (list s l)))
+  (let ((l (recurrence-vector v)))
+    (if l
+      (let ((s (labels ((rl (x) (if (= 0 (car x)) (rl (cdr x)) x)))
+              (nreverse (rl (nreverse (convolution-poly v l)))))))
+        (list s l))
+      NIL)))
+    
+; TODO: multiply s by lcm of denominators
