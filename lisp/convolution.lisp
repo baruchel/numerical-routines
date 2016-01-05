@@ -1,3 +1,9 @@
+ (defmacro coeff-normalize-list-fractions (v)
+   `(labels ((rl (m x)
+               (if x (rl (lcm m (denominator (car x))) (cdr x)) m)))
+      (rl 1 ,v)))
+
+
 ; Convolution between two series (lists of coefficients); the final size is the
 ; size of the shortest list
 (defun convolution (a b)
@@ -73,21 +79,18 @@
 
 (defun recurrence-vector (v)
   (let* ((l (recurrence-vector-raw v))
-         (c (labels ((rl (m x)
-                       (if x (rl (lcm m (denominator (car x))) (cdr x)) m)))
-              (rl 1 l))))
+         (c (coeff-normalize-list-fractions l)))
     (mapcar #'(lambda (a) (* c a)) l)))
 
 (defun ggf (v)
-  (let ((l (recurrence-vector v)))
+  (let ((l (recurrence-vector-raw v)))
     (if l
-      (labels ((rl (x) (if (= 0 (car x)) (rl (cdr x)) x))
-               (ql (m x) (if x (ql (lcm m (denominator (car x))) (cdr x)) m)))
-        (let ((s (nreverse (rl (nreverse (convolution-poly v l)))))
-              (c (ql 1 (nreverse (rl (nreverse (convolution-poly v l)))))))
-          (list
-            (mapcar #'(lambda (a) (* c a)) s)
-            (mapcar #'(lambda (a) (* c a)) l))))
+      (let* ((s (labels ((purge (x) (if (= 0 (car x)) (purge (cdr x)) x) ))
+                 (nreverse (purge (nreverse (convolution-poly v l))))))
+             (c (lcm
+                  (coeff-normalize-list-fractions l)
+                  (coeff-normalize-list-fractions s))))
+        (list
+          (mapcar #'(lambda (a) (* c a)) s)
+          (mapcar #'(lambda (a) (* c a)) l)))
       NIL)))
-    ;1/2 5/3 8/3 5/3 -23/6 -175/12 -599/24 -895/48 2713/96 24305/192 88969/384 153185/768 -301703/1536 -3346735/3072
-; TODO: multiply s by lcm of denominators
