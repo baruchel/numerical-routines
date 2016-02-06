@@ -125,12 +125,15 @@
   `(if (cdr ,v)
     (labels ((p (i n)
             (if i
-              (cons 
-                (if (= 1 (car i))
-                  (list '(mexpt simp) x n) 
-                  (list '(mtimes simp) (car i)
-                            (list '(mexpt simp) (quote $x) n)))
-                    (p (cdr i) (+ 1 n)))
+              (if (= 0 (car i)) (p (cdr i) (+ 1 n))
+                (cons 
+                  (if (= 1 (car i))
+                    (if (= 1 n) x (list '(mexpt simp) x n) )
+                    (if (= 1 n)
+                      (list '(mtimes simp) (car i) x)
+                      (list '(mtimes simp) (car i)
+                                (list '(mexpt simp) x n))))
+                      (p (cdr i) (+ 1 n))))
               NIL)))
       (cons '(mplus simp) (cons (car ,v) (p (cdr ,v) 1))))
     (car ,v)))
