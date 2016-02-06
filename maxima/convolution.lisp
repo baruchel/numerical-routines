@@ -97,3 +97,76 @@
           (mapcar #'(lambda (a) (* c a)) s)
           (mapcar #'(lambda (a) (* c a)) l)))
       NIL)))
+
+
+;;; MAXIMA interface
+;;; ================
+; Take a Maxima list containing either rational or integer numbers and convert
+; it into a lisp list
+; TODO: probably not the cleanest way to access Maxima rationals
+;       (see http://comments.gmane.org/gmane.comp.mathematics.maxima.general/28954 )
+(defmacro from-maxima-list (l)
+  `(labels ((c (i)
+              (if i
+                (cons
+                  (if
+                    (and (listp (car i))
+                         (eq 'rat (caaar i)))
+                    (apply '/ (cdar i))
+                    (car i))
+                  (c (cdr i)))
+                NIL)))
+     (c (cdr ,l))))
+
+(defmacro to-maxima-list (l)
+  `(cons '(mlist simp) ,l))
+
+(defmacro to-maxima-polynomial (v x)
+  `(if (cdr ,v)
+    (labels ((p (i n)
+            (if i
+              (cons 
+                (if (= 1 (car i))
+                  (list '(mexpt simp) x n) 
+                  (list '(mtimes simp) (car i)
+                            (list '(mexpt simp) (quote $x) n)))
+                    (p (cdr i) (+ 1 n)))
+              NIL)))
+      (cons '(mplus simp) (cons (car ,v) (p (cdr ,v) 1))))
+    (car ,v)))
+
+(defmacro to-maxima-ratfrac (f x)
+  `(list '(mtimes simp)
+    (list '(mexpt simp) (to-maxima-polynomial (cadr ,f) x) -1)
+    (to-maxima-polynomial (car ,f) x)))
+
+(defun $recvec (v)
+  (to-maxima-list (recurrence-vector-raw (from-maxima-list v))))
+
+(defun $recvecn (v)
+  (to-maxima-list (recurrence-vector (from-maxima-list v))))
+
+(defun $ggf (v &optional (x (quote $x)))
+  (to-maxima-ratfrac (ggf (from-maxima-list v)) x))
+
+;(%i5) recvec(makelist( 1/2^i, i, 12));
+;(%o5)                              [- 2, 1]
+;(%i6) recvec(makelist( 1/2^i+1, i, 12));
+;(%o6)                             [2, - 3, 1]
+;(%i7) 
+;(%i6) recvec(makelist( fib(i), i, 12));
+;(%o6)                             [- 1, 1, 1]
+;(%i7) recvec(makelist( 1/2^(12-i), i, 12));
+;(%o7)                             [- 1/2, 1]
+;(%i10) recvecn(makelist( 1/2^(12-i), i, 12));
+;(%o10)                             [- 1, 2]
+;(%i64) ggf(makelist( fib(i), i, 12));
+;                                        1
+;(%o64)                           - -----------
+;                                    2    1
+;                                   x  + x  - 1
+;(%i65) ggf(makelist( fib(i), i, 12),y);
+;                                        1
+;(%o65)                           - -----------
+;                                    2    1
+;                                   y  + y  - 1
