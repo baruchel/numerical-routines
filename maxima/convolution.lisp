@@ -46,6 +46,9 @@
              (if m (sub (cdr v) (cdr m) (- s (* (car v) (car m)))) s)))
     (main (cdr l) (list (/ 1 (car l))))))
              
+; Compute the minimal recurrence vector; returned coefficients are rational
+; (though integer coefficients may often been returned, non integer ones can
+; also been returned in some cases).
 (defun  recurrence-vector-raw (v)
   (let ((z (floor (/ (length v) 2))))
     (labels ((main (l q1 q2 sz)
@@ -80,11 +83,13 @@
                  NIL)))
       (main v '(0) '(1) 1))))
 
+; Compute the minimal recurrence vector; returned coefficients are integers.
 (defun recurrence-vector (v)
   (let* ((l (recurrence-vector-raw v))
          (c (coeff-normalize-list-fractions l)))
     (mapcar #'(lambda (a) (* c a)) l)))
 
+; Compute the generating function for a sequence if g.f is a rational function.
 (defun ggf (v)
   (let ((l (recurrence-vector-raw v)))
     (if l
