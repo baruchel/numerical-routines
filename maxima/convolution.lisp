@@ -28,9 +28,7 @@
 ;   * without compilation:
 ;         load("convolution.lisp")$
 ;   * with compilation (must be compiled only once):
-;         to_lisp()$
-;         (compile-file "convolution.lisp")
-;         (run)
+;         :lisp  (compile-file  ""convolution.lisp");
 ;     look for the compiled file like "convolution.o" and from now on:
 ;         load("convolution.o")$
 ;
@@ -58,6 +56,7 @@
 ;                                     2    1
 ;                                    y  + y  - 1
 
+(proclaim '(optimize (speed 3) (safety 0) (debug 0)))
 
 ; Compute the smallest (integer) coefficient for converting (by multiplication)
 ; a list of rational numbers to a list of integers; this is the LCM of all
