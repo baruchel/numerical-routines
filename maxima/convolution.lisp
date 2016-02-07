@@ -1,3 +1,64 @@
+; Copyright (c) 2016 Thomas Baruchel
+; 
+; Permission is hereby granted, free of charge, to any person obtaining a copy
+; of this software and associated documentation files (the "Software"), to deal
+; in the Software without restriction, including without limitation the rights
+; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+; copies of the Software, and to permit persons to whom the Software is
+; furnished to do so, subject to the following conditions:
+; 
+; The above copyright notice and this permission notice shall be included in
+; all copies or substantial portions of the Software.
+; 
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+; SOFTWARE.
+
+;
+; Functions for Maxima related to convolutions of series
+; ======================================================
+;
+; Installation
+; ------------
+; The functions can be used with or without compilation:
+;   * without compilation:
+;         load("convolution.lisp")$
+;   * with compilation (must be compiled only once):
+;         to_lisp()$
+;         (compile-file "convolution.lisp")
+;         (run)
+;     look for the compiled file like "convolution.o" and from now on:
+;         load("convolution.o")$
+;
+; Examples
+; --------
+; (%i5) recvec(makelist( 1/2^i, i, 12));
+; (%o5)                              [- 2, 1]
+; (%i6) recvec(makelist( 1/2^i+1, i, 12));
+; (%o6)                             [2, - 3, 1]
+; (%i7) 
+; (%i6) recvec(makelist( fib(i), i, 12));
+; (%o6)                             [- 1, 1, 1]
+; (%i7) recvec(makelist( 1/2^(12-i), i, 12));
+; (%o7)                             [- 1/2, 1]
+; (%i10) recvecn(makelist( 1/2^(12-i), i, 12));
+; (%o10)                             [- 1, 2]
+; (%i64) ggf(makelist( fib(i), i, 12));
+;                                         1
+; (%o64)                           - -----------
+;                                     2    1
+;                                    x  + x  - 1
+; (%i65) ggf(makelist( fib(i), i, 12),y);
+;                                         1
+; (%o65)                           - -----------
+;                                     2    1
+;                                    y  + y  - 1
+
+
 ; Compute the smallest (integer) coefficient for converting (by multiplication)
 ; a list of rational numbers to a list of integers; this is the LCM of all
 ; denominators.
@@ -106,10 +167,6 @@
 
 ;;; MAXIMA interface
 ;;; ================
-; Take a Maxima list containing either rational or integer numbers and convert
-; it into a lisp list
-; TODO: probably not the cleanest way to access Maxima rationals
-;       (see http://comments.gmane.org/gmane.comp.mathematics.maxima.general/28954 )
 (defun from-maxima-list (l)
   (mapcar #'(lambda(r)(if (and (listp r)(eq (caar r) 'rat))
                  (/ (second r)(third r))
@@ -152,25 +209,3 @@
 
 (defun $ggf (v &optional (x (quote $x)))
   (to-maxima-ratfrac (ggf (from-maxima-list v)) x))
-
-;(%i5) recvec(makelist( 1/2^i, i, 12));
-;(%o5)                              [- 2, 1]
-;(%i6) recvec(makelist( 1/2^i+1, i, 12));
-;(%o6)                             [2, - 3, 1]
-;(%i7) 
-;(%i6) recvec(makelist( fib(i), i, 12));
-;(%o6)                             [- 1, 1, 1]
-;(%i7) recvec(makelist( 1/2^(12-i), i, 12));
-;(%o7)                             [- 1/2, 1]
-;(%i10) recvecn(makelist( 1/2^(12-i), i, 12));
-;(%o10)                             [- 1, 2]
-;(%i64) ggf(makelist( fib(i), i, 12));
-;                                        1
-;(%o64)                           - -----------
-;                                    2    1
-;                                   x  + x  - 1
-;(%i65) ggf(makelist( fib(i), i, 12),y);
-;                                        1
-;(%o65)                           - -----------
-;                                    2    1
-;                                   y  + y  - 1
