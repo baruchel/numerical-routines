@@ -110,24 +110,20 @@
 ; it into a lisp list
 ; TODO: probably not the cleanest way to access Maxima rationals
 ;       (see http://comments.gmane.org/gmane.comp.mathematics.maxima.general/28954 )
-(defmacro from-maxima-list (l)
-  `(labels ((c (i)
-              (if i
-                (cons
-                  (if
-                    (and (listp (car i))
-                         (eq 'rat (caaar i)))
-                    (apply '/ (cdar i))
-                    (car i))
-                  (c (cdr i)))
-                NIL)))
-     (c (cdr ,l))))
+(defun from-maxima-list (l)
+  (mapcar #'(lambda(r)(if (and (listp r)(eq (caar r) 'rat))
+                 (/ (second r)(third r))
+                 r))
+       (cdr l)))
 
-(defmacro to-maxima-list (l)
-  `(cons '(mlist simp) ,l))
+(defun to-maxima-list (l)
+  (cons '(mlist)
+        (mapcar #'(lambda (r)
+                    (if (rationalp r)
+                      (list '(rat)(numerator r)(denominator r)) r)) l)))
 
-(defmacro to-maxima-polynomial (v x)
-  `(if (cdr ,v)
+(defun to-maxima-polynomial (v x)
+  (if (cdr v)
     (labels ((p (i n)
             (if i
               (if (= 0 (car i)) (p (cdr i) (+ 1 n))
@@ -140,13 +136,13 @@
                                 (list '(mexpt simp) x n))))
                       (p (cdr i) (+ 1 n))))
               NIL)))
-      (cons '(mplus simp) (cons (car ,v) (p (cdr ,v) 1))))
-    (car ,v)))
+      (cons '(mplus simp) (cons (car v) (p (cdr v) 1))))
+    (car v)))
 
-(defmacro to-maxima-ratfrac (f x)
-  `(list '(mtimes simp)
-    (list '(mexpt simp) (to-maxima-polynomial (cadr ,f) x) -1)
-    (to-maxima-polynomial (car ,f) x)))
+(defun to-maxima-ratfrac (f x)
+  (list '(mtimes simp)
+    (list '(mexpt simp) (to-maxima-polynomial (cadr f) x) -1)
+    (to-maxima-polynomial (car f) x)))
 
 (defun $recvec (v)
   (to-maxima-list (recurrence-vector-raw (from-maxima-list v))))
