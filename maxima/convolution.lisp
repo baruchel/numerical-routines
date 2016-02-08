@@ -32,6 +32,14 @@
 ;     look for the compiled file like "convolution.o" and from now on:
 ;         load("convolution.o")$
 ;
+; Functions
+; ---------
+;   * Function 'recvec': detecting a recurrence relation (return a list of
+;     rational coefficients);
+;   * Function 'recvecn': detecting a recurrence relation (return a list of
+;     integer coefficients);
+;   * Function 'ggf': compute the generating function of a sequence
+;
 ; Examples
 ; --------
 ; (%i5) recvec(makelist( 1/2^i, i, 12));
@@ -61,7 +69,8 @@
 ; Compute the smallest (integer) coefficient for converting (by multiplication)
 ; a list of rational numbers to a list of integers; this is the LCM of all
 ; denominators.
-(defmacro coeff-normalize-list-fractions (v) `(denominator (reduce #'+ ,v)))
+(defmacro coeff-normalize-list-fractions (v)
+  `(reduce #'lcm (mapcar #'denominator ,v)))
 
 
 ; Convolution between two series (lists of coefficients); the final size is the
