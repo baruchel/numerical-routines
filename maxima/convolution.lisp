@@ -89,17 +89,14 @@
 ; size of the longest list (first argument).
 ; The polynomial (second argument) MUST have less coefficients than the series.
 (defun convolution-poly (a b)
-  (labels ((main (ar br rev comp)
-             (if ar
-               (let* ((br2 (if br br '(0)))
-                      (x (cons (car br2) rev)))
-                 (main (cdr ar) (cdr br2) x
-                       (cons (loop
-                               for i in a
-                               for j in x
-                               sum (* i j)) comp)))
-               (nreverse comp))))
-    (main a b NIL NIL)))
+  (loop
+    for NIL in a
+    for y = b then (if (cdr y) (cdr y) '(0))
+    for z = (list (car b)) then (cons (car y) z)
+    collect (loop
+              for i in a
+              for j in z
+              sum (* i j))))
 
 ; Compute the reciprocal of a series (list of coefficient); the first coefficient
 ; MUST not be zero.
