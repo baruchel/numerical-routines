@@ -1,11 +1,8 @@
 ; Compute the smallest (integer) coefficient for converting (by multiplication)
 ; a list of rational numbers to a list of integers; this is the LCM of all
 ; denominators.
- (defmacro coeff-normalize-list-fractions (v)
-   `(labels ((rl (m x)
-               (if x (rl (lcm m (denominator (car x))) (cdr x)) m)))
-      (rl 1 ,v)))
-
+(defmacro coeff-normalize-list-fractions (v)
+  `(reduce #'lcm (mapcar #'denominator ,v)))
 
 ; Convolution between two series (lists of coefficients); the final size is the
 ; size of the shortest list
@@ -14,10 +11,11 @@
              (if (and ar br)
                (let ((x (cons (car br) rev)))
                  (main (cdr ar) (cdr br) x
-                       (cons (sub a x 0) comp)))
-               (nreverse comp)))
-           (sub (c d s)
-             (if d (sub (cdr c) (cdr d) (+ s (* (car c) (car d)))) s)))
+                       (cons (loop
+                               for i in a
+                               for j in x
+                               sum (* i j)) comp)))
+               (nreverse comp))))
     (main a b NIL NIL)))
 
 ; Convolution between one series and one polynomial; the final size is the
@@ -29,10 +27,11 @@
                (let* ((br2 (if br br '(0)))
                       (x (cons (car br2) rev)))
                  (main (cdr ar) (cdr br2) x
-                       (cons (sub a x 0) comp)))
-               (nreverse comp)))
-           (sub (c d s)
-             (if d (sub (cdr c) (cdr d) (+ s (* (car c) (car d)))) s)))
+                       (cons (loop
+                               for i in a
+                               for j in x
+                               sum (* i j)) comp)))
+               (nreverse comp))))
     (main a b NIL NIL)))
 
 ; Compute the reciprocal of a series (list of coefficient); the first coefficient
@@ -40,10 +39,13 @@
 (defun convolution-reciprocal (l)
   (labels ((main (a m)
              (if a
-               (main (cdr a) (cons (/ (sub (cdr l) m 0) (car l)) m))
-               (nreverse m)))
-           (sub (v m s)
-             (if m (sub (cdr v) (cdr m) (- s (* (car v) (car m)))) s)))
+               (main (cdr a) (cons (/ (-
+                                        (loop
+                                          for i in (cdr l)
+                                          for j in m
+                                          sum (* i j)))
+                                      (car l)) m))
+               (nreverse m))))
     (main (cdr l) (list (/ 1 (car l))))))
              
 (defun  recurrence-vector-raw (v)

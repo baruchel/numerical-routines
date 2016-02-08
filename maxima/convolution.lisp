@@ -123,14 +123,12 @@
   (let ((z (floor (/ (length v) 2))))
     (labels ((main (l q1 q2 sz)
                (if (<= sz z)
-                 (multiple-value-bind (qq1 m)
-                   (labels ((rl (w z)
-                              (if (= (car w) 0)
-                                (if (cdr w)
-                                  (rl (cdr w) (cons 0 z))
-                                  (values NIL NIL))
-                                (values z w))))
-                     (rl l q1))
+                 (multiple-value-bind (m qq1)
+                   (loop
+                     for a on l
+                     for b = q1 then (cons 0 b)
+                     finally (return (values NIL NIL))
+                     do (if (/= 0 (car a)) (return (values a b))))
                    (if qq1
                      (multiple-value-bind (q s)
                        (labels ((rl (k2 k1 o ss)
@@ -152,6 +150,9 @@
                      q2))
                  NIL)))
       (main v '(0) '(1) 1))))
+
+
+
 
 ; Compute the minimal recurrence vector; returned coefficients are integers.
 (defun recurrence-vector (v)
