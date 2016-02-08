@@ -201,7 +201,7 @@
     (to-maxima-polynomial (car f) x)))
 
 (defun $recvec (v)
-  (to-maxima-list (recurrence-vector-raw (from-maxima-list v))))
+  (cons '(mlist simp) (recurrence-vector-raw (from-maxima-list v))))
 
 (defun $recvecn (v)
   (to-maxima-list (recurrence-vector (from-maxima-list v))))
