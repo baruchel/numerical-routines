@@ -72,7 +72,6 @@
 (defmacro coeff-normalize-list-fractions (v)
   `(reduce #'lcm (mapcar #'denominator ,v)))
 
-
 ; Convolution between two series (lists of coefficients); the final size is the
 ; size of the shortest list
 (defun convolution (a b)
