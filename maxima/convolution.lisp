@@ -75,16 +75,15 @@
 ; Convolution between two series (lists of coefficients); the final size is the
 ; size of the shortest list
 (defun convolution (a b)
-  (labels ((main (ar br rev comp)
-             (if (and ar br)
-               (let ((x (cons (car br) rev)))
-                 (main (cdr ar) (cdr br) x
-                       (cons (loop
-                               for i in a
-                               for j in x
-                               sum (* i j)) comp)))
-               (nreverse comp))))
-    (main a b NIL NIL)))
+  (loop
+    for NIL in a
+    for y in b
+    for z = (list (car b)) then (cons y z)
+    collect (loop
+              for i in a
+              for j in z
+              sum (* i j))))
+    
 
 ; Convolution between one series and one polynomial; the final size is the
 ; size of the longest list (first argument).
@@ -105,16 +104,16 @@
 ; Compute the reciprocal of a series (list of coefficient); the first coefficient
 ; MUST not be zero.
 (defun convolution-reciprocal (l)
-  (labels ((main (a m)
-             (if a
-               (main (cdr a) (cons (/ (-
-                                        (loop
-                                          for i in (cdr l)
-                                          for j in m
-                                          sum (* i j)))
-                                      (car l)) m))
-               (nreverse m))))
-    (main (cdr l) (list (/ 1 (car l))))))
+  (loop
+    for NIL in l
+    for m = (list (/ 1 (car l))) then
+      (cons (/ (-
+        (loop
+          for i in (cdr l)
+          for j in m
+          sum (* i j)))
+        (car l)) m)
+    finally (return (nreverse m))))
              
 ; Compute the minimal recurrence vector; returned coefficients are rational
 ; (though integer coefficients may often been returned, non integer ones can
