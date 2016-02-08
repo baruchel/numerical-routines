@@ -64,7 +64,7 @@
 ;                                     2    1
 ;                                    y  + y  - 1
 
-(proclaim '(optimize (speed 3) (safety 0) (debug 0)))
+;;; (proclaim '(optimize (speed 3) (safety 0) (debug 0)))
 
 ; Compute the smallest (integer) coefficient for converting (by multiplication)
 ; a list of rational numbers to a list of integers; this is the LCM of all
@@ -127,22 +127,19 @@
                      do (if (/= 0 (car a)) (return (values a b))))
                    (if qq1
                      (multiple-value-bind (q s)
-                       (labels ((rl (k2 k1 o ss)
-                                  (if (or k1 k2)
-                                    (let ((kk1 (if k1 k1 '(0)))
-                                          (kk2 (if k2 k2 '(0))))
-                                      (rl (cdr kk2) (cdr kk1)
-                                          (cons
-                                            (+ (/ (car kk2) (car m)) (car kk1))
-                                            o)
-                                          (+ 1 ss)))
-                                     (loop
-                                       for oo on o
-                                       for i downfrom ss
-                                       do (if (/= 0 (car oo))
-                                            (return
-                                              (values (nreverse oo) i)))))))
-                         (rl q2 qq1 NIL 0))
+                       (loop named add-and-compute-size
+                         for k2 = q2 then (if (cdr k2) (cdr k2) '(0))
+                         for k1 = qq1 then (if (cdr k1) (cdr k1) '(0))
+                         for o = (cons (+ (/ (car q2) (car m)) (car qq1)) o)
+                               then (cons (+ (/ (car k2) (car m)) (car k1)) o)
+                         for ss from 1
+                         do (if (not (or (cdr k1) (cdr k2)))
+                              (loop
+                                for oo on o
+                                for i downfrom ss
+                                do (if (/= 0 (car oo))
+                                     (return-from add-and-compute-size
+                                       (values (nreverse oo) i))))))
                        (main (cdr (convolution-reciprocal m)) (cons 0 q2) q s))
                      q2))
                  NIL)))
