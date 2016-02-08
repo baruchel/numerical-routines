@@ -136,19 +136,17 @@
                                             (+ (/ (car kk2) (car m)) (car kk1))
                                             o)
                                           (+ 1 ss)))
-                                    (purge o ss)))
-                                (purge (o ss)
-                                  (if (= 0 (car o))
-                                    (purge (cdr o) (- ss 1))
-                                    (values (nreverse o) ss))))
+                                     (loop
+                                       for oo on o
+                                       for i downfrom ss
+                                       do (if (/= 0 (car oo))
+                                            (return
+                                              (values (nreverse oo) i)))))))
                          (rl q2 qq1 NIL 0))
                        (main (cdr (convolution-reciprocal m)) (cons 0 q2) q s))
                      q2))
                  NIL)))
       (main v '(0) '(1) 1))))
-
-
-
 
 ; Compute the minimal recurrence vector; returned coefficients are integers.
 (defun recurrence-vector (v)
