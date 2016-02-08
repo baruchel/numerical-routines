@@ -61,10 +61,7 @@
 ; Compute the smallest (integer) coefficient for converting (by multiplication)
 ; a list of rational numbers to a list of integers; this is the LCM of all
 ; denominators.
- (defmacro coeff-normalize-list-fractions (v)
-   `(labels ((rl (m x)
-               (if x (rl (lcm m (denominator (car x))) (cdr x)) m)))
-      (rl 1 ,v)))
+(defmacro coeff-normalize-list-fractions (v) `(denominator (reduce #'+ ,v)))
 
 
 ; Convolution between two series (lists of coefficients); the final size is the
