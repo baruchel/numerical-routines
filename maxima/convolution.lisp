@@ -116,34 +116,37 @@
 ; (though integer coefficients may often been returned, non integer ones can
 ; also been returned in some cases).
 (defun  recurrence-vector-raw (v)
-  (let ((z (floor (/ (length v) 2))))
-    (labels ((main (l q1 q2 sz)
-               (if (<= sz z)
-                 (multiple-value-bind (m qq1)
-                   (loop
-                     for a on l
-                     for b = q1 then (cons 0 b)
-                     finally (return (values NIL NIL))
-                     do (if (/= 0 (car a)) (return (values a b))))
-                   (if qq1
-                     (multiple-value-bind (q s)
-                       (loop named add-and-compute-size
-                         for k2 = q2 then (if (cdr k2) (cdr k2) '(0))
-                         for k1 = qq1 then (if (cdr k1) (cdr k1) '(0))
-                         for o = (cons (+ (/ (car q2) (car m)) (car qq1)) o)
-                               then (cons (+ (/ (car k2) (car m)) (car k1)) o)
-                         for ss from 1
-                         do (if (not (or (cdr k1) (cdr k2)))
-                              (loop
-                                for oo on o
-                                for i downfrom ss
-                                do (if (/= 0 (car oo))
-                                     (return-from add-and-compute-size
-                                       (values (nreverse oo) i))))))
-                       (main (cdr (convolution-reciprocal m)) (cons 0 q2) q s))
-                     q2))
-                 NIL)))
-      (main v '(0) '(1) 1))))
+  (loop named main
+    with z = (floor (/ (length v) 2))
+    with l = v
+    with q1 = '(0)
+    for q2 = '(1)
+           then (multiple-value-bind (m qq1)
+                  (loop
+                    for a on l
+                    for b = q1 then (cons 0 b)
+                    finally (return (values NIL NIL))
+                    do (if (/= 0 (car a)) (return (values a b))))
+                  (if qq1
+                    (loop named add-and-compute-size
+                      for k2 = q2 then (if (cdr k2) (cdr k2) '(0))
+                      for k1 = qq1 then (if (cdr k1) (cdr k1) '(0))
+                      for o = (cons (+ (/ (car q2) (car m)) (car qq1)) o)
+                            then (cons (+ (/ (car k2) (car m)) (car k1)) o)
+                      for ss from 1
+                      do (if (not (or (cdr k1) (cdr k2)))
+                           (loop
+                             for oo on o
+                             for i downfrom ss
+                             do (if (/= 0 (car oo))
+                                  (if (> i z)
+                                    (return-from main NIL)
+                                    (progn
+                                      (setf q1 (cons 0 q2))
+                                      (setf l (cdr (convolution-reciprocal m)))
+                                      (return-from add-and-compute-size
+                                        (nreverse oo))))))))
+                    (return-from main q2)))))
 
 ; Compute the minimal recurrence vector; returned coefficients are integers.
 (defun recurrence-vector (v)
