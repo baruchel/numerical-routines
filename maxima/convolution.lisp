@@ -115,6 +115,7 @@
 ; Compute the minimal recurrence vector; returned coefficients are rational
 ; (though integer coefficients may often been returned, non integer ones can
 ; also been returned in some cases).
+; Warning: an empty sequence returns (1)
 (defun  recurrence-vector-raw (v)
   (loop named main
     with z = (floor (/ (length v) 2))
@@ -158,8 +159,10 @@
 (defun ggf (v)
   (let ((l (recurrence-vector-raw v)))
     (if l
-      (let* ((s (labels ((purge (x) (if (= 0 (car x)) (purge (cdr x)) x) ))
-                 (nreverse (purge (nreverse (convolution-poly v l))))))
+      (let* ((s (nreverse
+                  (loop
+                    for x on (nreverse (convolution-poly v l))
+                    do (if (/= 0 (car x)) (return x)))))
              (c (lcm
                   (coeff-normalize-list-fractions l)
                   (coeff-normalize-list-fractions s))))
@@ -167,7 +170,7 @@
           (mapcar #'(lambda (a) (* c a)) s)
           (mapcar #'(lambda (a) (* c a)) l)))
       NIL)))
-
+         
 
 ;;; MAXIMA interface
 ;;; ================
@@ -185,19 +188,18 @@
 
 (defun to-maxima-polynomial (v x)
   (if (cdr v)
-    (labels ((p (i n)
-            (if i
-              (if (= 0 (car i)) (p (cdr i) (+ 1 n))
-                (cons 
-                  (if (= 1 (car i))
-                    (if (= 1 n) x (list '(mexpt simp) x n) )
-                    (if (= 1 n)
-                      (list '(mtimes simp) (car i) x)
-                      (list '(mtimes simp) (car i)
-                                (list '(mexpt simp) x n))))
-                      (p (cdr i) (+ 1 n))))
-              NIL)))
-      (cons '(mplus simp) (cons (car v) (p (cdr v) 1))))
+    (cons '(mplus simp)
+          (cons (car v)
+            (loop
+              for c in (cdr v)
+              for n from 1
+              when (/= 0 c)
+              collect
+                (if (= 1 c)
+                  (if (= 1 n) x (list '(mexpt simp) x n))
+                  (if (= 1 n)
+                    (list '(mtimes simp) c x)
+                    (list '(mtimes simp) c (list '(mexpt simp) x n)))))))
     (car v)))
 
 (defun to-maxima-ratfrac (f x)
@@ -206,10 +208,20 @@
     (to-maxima-polynomial (car f) x)))
 
 (defun $recvec (v)
-  (cons '(mlist simp) (recurrence-vector-raw (from-maxima-list v))))
+  (let* ((l (from-maxima-list v))
+         (g (if l (recurrence-vector-raw l) NIL)))
+    (if g
+      (to-maxima-list g)
+      NIL)))
 
 (defun $recvecn (v)
-  (to-maxima-list (recurrence-vector (from-maxima-list v))))
+  (let* ((l (from-maxima-list v))
+         (g (if l (recurrence-vector l) NIL)))
+    (if g (cons '(mlist simp) g) NIL)))
 
 (defun $ggf (v &optional (x (quote $x)))
-  (to-maxima-ratfrac (ggf (from-maxima-list v)) x))
+  (let* ((l (from-maxima-list v))
+         (g (if l (ggf l) NIL)))
+    (if g
+      (to-maxima-ratfrac g x)
+      NIL)))
