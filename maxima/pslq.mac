@@ -22,8 +22,16 @@ SOFTWARE.
 
 /*
 
+An integer relation algorithm for finding integer relations between constants
+(bfloat type being the intended type to be used by the function).
+
 Examples
 ========
+
+(%i4) fpprec: 64$
+(%i5) pslq([bfloat(zeta(2)), %pi^2], 1b-32);
+(%o5)                              [- 6, 1]
+
 
 (%i78) fpprec: 64$ phi: bfloat((1+sqrt(5))/2)$
 (%i79) algdep(phi,2,1b-32);
