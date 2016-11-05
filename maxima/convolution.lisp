@@ -28,7 +28,7 @@
 ;   * without compilation:
 ;         load("convolution.lisp")$
 ;   * with compilation (must be compiled only once):
-;         :lisp  (compile-file  ""convolution.lisp");
+;         :lisp  (compile-file "convolution.lisp");
 ;     look for the compiled file like "convolution.o" and from now on:
 ;         load("convolution.o")$
 ;
