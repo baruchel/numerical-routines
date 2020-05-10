@@ -37,6 +37,11 @@
                                                    :initial-element 0))
                                 then (convolution y v)
                         collect y)))
+     (ll (make-array (list n)
+                     :initial-contents
+                       (loop for i below n
+                             for j = 1 then (* j l)
+                             collect j)))
      (*vi (loop
            with vi* = (eye n)
            for k from 1 below n
@@ -45,7 +50,7 @@
                 do (setf (aref vi* j k)
                          (- (/ (loop for u from (1+ j) to k
                                      sum (* (aref vi* u k) (aref c j u)))
-                            (- (expt l j) (expt l k))))))
+                            (- (aref ll j) (aref ll k))))))
            finally (return
                      (loop for i below n collect (aref vi* 1 i)))))
      (*v (loop
@@ -56,7 +61,7 @@
                 do (setf (aref v* j k)
                          (/ (loop for u from j below k
                                   sum (* (aref v* j u) (aref c u k)))
-                            (- (expt l j) (expt l k)))))
+                            (- (aref ll j) (aref ll k)))))
            finally (return v*))))
     (lambda (d2)
       (let ((d2* (loop
