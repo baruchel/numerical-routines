@@ -64,13 +64,12 @@
            finally (return v*))))
     (lambda (d2)
       (let ((d2* (loop
-                   for i below n
                    for j = 1 then (* j d2)
-                   collect j)))
+                   for k in *vi
+                   collect (* k j))))
         (loop
           for i below n
           collect
             (loop for j to i
                   for d in d2*
-                  for k in *vi
-                  sum (* k d (aref *v j i))))))))
+                  sum (* d (aref *v j i))))))))
