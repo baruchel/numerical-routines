@@ -63,15 +63,14 @@
                             (- (expt l j) (expt l k)))))
            finally (return v*))))
     (lambda (d2)
-      (let ((d2* (make-array
-                   (list n) :initial-contents
-                              (loop
-                                for i below n
-                                for j = 1 then (* j d2)
-                                collect j))))
+      (let ((d2* (loop
+                   for i below n
+                   for j = 1 then (* j d2)
+                   collect j)))
         (loop
           for i below n
           collect
             (loop for j to i
+                  for d in d2*
                   for k in *vi
-                  sum (* k (aref *v j i) (aref d2* j))))))))
+                  sum (* k d (aref *v j i))))))))
