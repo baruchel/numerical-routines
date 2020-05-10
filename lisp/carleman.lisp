@@ -43,10 +43,8 @@
            do (loop
                 for j from (1- k) downto 1
                 do (setf (aref vi* j k)
-                         (- (/ (reduce #'+
-                                    (loop for u from (1+ j) to k
-                                          collect (* (aref vi* u k)
-                                                     (aref c j u))))
+                         (- (/ (loop for u from (1+ j) to k
+                                     sum (* (aref vi* u k) (aref c j u)))
                             (- (expt l j) (expt l k))))))
            finally (return
                      (loop for i below n collect (aref vi* 1 i)))))
@@ -56,10 +54,8 @@
            do (loop
                 for k from (1+ j) below n
                 do (setf (aref v* j k)
-                         (/ (reduce #'+
-                                    (loop for u from j below k
-                                          collect (* (aref v* j u)
-                                                     (aref c u k))))
+                         (/ (loop for u from j below k
+                                  sum (* (aref v* j u) (aref c u k)))
                             (- (expt l j) (expt l k)))))
            finally (return v*))))
     (lambda (d2)
