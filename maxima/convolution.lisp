@@ -151,9 +151,10 @@
 
 ; Compute the minimal recurrence vector; returned coefficients are integers.
 (defun recurrence-vector (v)
-  (let* ((l (recurrence-vector-raw v))
-         (c (coeff-normalize-list-fractions l)))
-    (mapcar #'(lambda (a) (* c a)) l)))
+  (let ((l (recurrence-vector-raw v)))
+    (if l
+      (mapcar #'(lambda (a) (* (coeff-normalize-list-fractions l) a)) l)
+      NIL)))
 
 ; Compute the generating function for a sequence if g.f is a rational function.
 (defun ggf (v)
