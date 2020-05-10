@@ -70,9 +70,8 @@
                                 for j = 1 then (* j d2)
                                 collect j))))
         (loop
-          for w in (loop
-                     for i below n
-                     collect (loop
-                               for j from 0 to i
-                               collect (* (aref *v j i) (aref d2* j))))
-          collect (reduce #'+ (mapcar #'* *vi w)))))))
+          for i below n
+          collect
+            (loop for j to i
+                  for k in *vi
+                  sum (* k (aref *v j i) (aref d2* j))))))))
