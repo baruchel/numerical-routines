@@ -18,14 +18,6 @@
 (defun C (v)
   (let*
     ((n (length v))
-    ;(c (make-array (list n n)
-    ;               :initial-contents 
-    ;                 (loop
-    ;                   for NIL in v
-    ;                   for y = (cons 1 (make-list (1- (length v))
-    ;                                              :initial-element 0))
-    ;                           then (convolution y v)
-    ;                   collect y)))
      (c (loop
           with m = (make-array (list n n) :initial-element 0)
           initially (progn
