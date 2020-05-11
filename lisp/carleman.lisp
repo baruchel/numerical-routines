@@ -6,19 +6,9 @@
     do (setf (aref m i i) 1)
     finally (return m)))
 
-; Convolution of two power series
-(defun convolution (a b)
-  (loop
-    for NIL in a
-    for y in b
-    for z = (list (car b)) then (cons y z)
-    collect (loop
-              for i in a
-              for j in z
-              sum (* i j))))
-
 ; Compute iterates of some power series
 ; Argument must be a list following some rules:
+;   * list has at least 2 elements;
 ;   * initial coefficient MUST BE 0;
 ;   * second coefficient is a positive value != 1
 ; Return a Lambda function
@@ -28,14 +18,31 @@
 (defun C (v)
   (let*
     ((n (length v))
-     (c (make-array (list n n)
-                    :initial-contents 
+    ;(c (make-array (list n n)
+    ;               :initial-contents 
+    ;                 (loop
+    ;                   for NIL in v
+    ;                   for y = (cons 1 (make-list (1- (length v))
+    ;                                              :initial-element 0))
+    ;                           then (convolution y v)
+    ;                   collect y)))
+     (c (loop
+          with m = (make-array (list n n) :initial-element 0)
+          initially (progn
+                      (setf (aref m 0 0) 1)
                       (loop
-                        for NIL in v
-                        for y = (cons 1 (make-list (1- (length v))
-                                                   :initial-element 0))
-                                then (convolution y v)
-                        collect y)))
+                        for i below n
+                        for j in v
+                        do (setf (aref m 1 i) j)))
+          for i from 2 below n
+          do (loop
+               for j from i below n
+               with w = (1- i)
+               do (setf (aref m i j) (loop
+                                       for u from j downto w
+                                       for k in v
+                                       sum (* (aref m w u) k))))
+          finally (return m)))
      (*vi (loop
            with vi* = (eye n)
            for k from 1 below n
