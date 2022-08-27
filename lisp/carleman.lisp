@@ -141,52 +141,6 @@
     ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
     ; Formula (4.16) in "Continuous time evolution form iterated maps and
     ; Carleman linearization" (Gralewicz and Kowalski)
-    (loop for NIL in v
-          for i from 0
-          with w = (reverse m)
-          with d = (cadr v)
-          for d1 = 1 then (* d1 d)
-          collect (loop
-                        for x = (list 1)
-                          then (cons 
-                                 (/ (loop for e in x
-                                          for f in (nthcdr j u)
-                                          summing (* e f))
-                                    (- d1 d2)) x)
-                        for u in (nthcdr (- (list-length v) i) w)
-                        for j from i downto 0
-                        for d2 = (/ d1 d) then (/ d2 d)
-                        finally (return x)))))
-(defun carleman-diag3 (v)
-  (let ((m (carleman v)))
-    ; let M be the Carelman matrix of a function having 0 as a fixed point
-    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
-    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
-    ; Formula (4.16) in "Continuous time evolution form iterated maps and
-    ; Carleman linearization" (Gralewicz and Kowalski)
-    (loop for w in m
-          for i from 0
-          for y = (list w) then (cons w y)
-          with d = (cadr v)
-          for d1 = 1 then (* d1 d)
-          collect (loop
-                        for u in y
-                        for x = (list 1)
-                          then (cons 
-                                 (/ (loop for e in x
-                                          for f in (nthcdr j u)
-                                          summing (* e f))
-                                    (- d1 d2)) x)
-                        for j from i downto 0
-                        for d2 = (/ d1 d) then (/ d2 d)
-                        finally (return x)))))
-(defun carleman-diag4 (v)
-  (let ((m (carleman v)))
-    ; let M be the Carelman matrix of a function having 0 as a fixed point
-    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
-    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
-    ; Formula (4.16) in "Continuous time evolution form iterated maps and
-    ; Carleman linearization" (Gralewicz and Kowalski)
     (loop for w in m
           for i from 1
           for y = (list (cdr w)) then (cons (nthcdr i w) y)
