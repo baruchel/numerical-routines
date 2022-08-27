@@ -1,69 +1,212 @@
-; Identity Matrix (as an array NOT AS lists)
-(defun eye (n)
-  (loop
-    for i below n
-    with m = (make-array (list n n) :initial-element 0)
-    do (setf (aref m i i) 1)
-    finally (return m)))
+; Copyright (c) 2022 Thomas Baruchel
+; 
+; Permission is hereby granted, free of charge, to any person obtaining a copy
+; of this software and associated documentation files (the "Software"), to deal
+; in the Software without restriction, including without limitation the rights
+; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+; copies of the Software, and to permit persons to whom the Software is
+; furnished to do so, subject to the following conditions:
+; 
+; The above copyright notice and this permission notice shall be included in
+; all copies or substantial portions of the Software.
+; 
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+; SOFTWARE.
 
-; Compute iterates of some power series
-; Argument must be a list following some rules:
-;   * list has at least 2 elements;
-;   * initial coefficient MUST BE 0;
-;   * second coefficient is a positive value != 1
-; Return a Lambda function
-; The lambda is used with a new value for the derivative at 0
-; (new value must be a positive value != 1); returns the new coefficients
-;  eg. (funcall (C '(0 2 0 2 0 2 0 2)) 3)
-(defun C (v)
-  (let*
-    ((n (length v))
-     (c (loop
-          with m = (make-array (list n n) :initial-element 0)
-          initially (progn
-                      (setf (aref m 0 0) 1)
-                      (loop
-                        for i below n
-                        for j in v
-                        do (setf (aref m 1 i) j)))
-          for i from 2 below n
-          do (loop
-               for j from i below n
-               with w = (1- i)
-               do (setf (aref m i j) (loop
-                                       for u from j downto w
-                                       for k in v
-                                       sum (* (aref m w u) k))))
-          finally (return m)))
-     (*vi (loop
-           with vi* = (eye n)
-           for k from 1 below n
-           do (loop
-                for j from (1- k) downto 1
-                do (setf (aref vi* j k)
-                         (- (/ (loop for u from (1+ j) to k
-                                     sum (* (aref vi* u k) (aref c j u)))
-                            (- (aref c j j) (aref c k k))))))
-           finally (return
-                     (loop for i below n collect (aref vi* 1 i)))))
-     (*v (loop
-           with v* = (eye n)
-           for j below (1- n)
-           do (loop
-                for k from (1+ j) below n
-                do (setf (aref v* j k)
-                         (/ (loop for u from j below k
-                                  sum (* (aref v* j u) (aref c u k)))
-                            (- (aref c j j) (aref c k k)))))
-           finally (return v*))))
-    (lambda (d2)
-      (let ((d2* (loop
-                   for j = 1 then (* j d2)
-                   for k in *vi
-                   collect (* k j))))
-        (loop
-          for i below n
-          collect
-            (loop for j to i
-                  for d in d2*
-                  sum (* d (aref *v j i))))))))
+; compute the Carleman matrix for series whose coefficients are in v
+; return a list of lists
+(defun carleman (v)
+  (let ((n (list-length v)))
+    (loop repeat n
+          with w = (reverse v)
+          for u = (cons 1 (make-list (1- n) :initial-element 0))
+            then (loop for x on w
+                       with s = NIL
+                       do (setf s (cons (loop for a in x
+                                              for b in u
+                                              summing (* a b)) s))
+                       finally (return s))
+          collect u)))
+
+; compute the Carleman matrix for series whose coefficients are in v
+; return an array of lists
+(defun carleman-array (v)
+  (let* ((n (list-length v)) (a (make-array n)))
+    (loop for i below n
+          with w = (reverse v)
+          for u = (cons 1 (make-list (1- n) :initial-element 0))
+            then (loop for x on w
+                       with s = NIL
+                       do (setf s (cons (loop for a in x
+                                              for b in u
+                                              summing (* a b)) s))
+                       finally (return s))
+          do (setf (aref a i) u))
+    a))
+
+; compute the Carleman matrix for series whose coefficients are in v
+; return an array of arrays
+(defun carleman-array2 (v)
+  (let* ((n (list-length v)) (a (make-array n))
+                             (j (make-array n :initial-element 0)))
+    (setf (aref j 0) 1)
+    (setf (aref a 0) j)
+    (loop for i from 1 below n
+          with w = (reverse v)
+          do (let ((s (make-array n :initial-element 0)))
+               (setf (aref a i) s)
+               (loop for x on w
+                     for j from (1- n) downto 0
+                     do (setf (aref s j) (loop for e in x
+                                               for f across (aref a (1- i))
+                                               summing (* e f))))))
+    a))
+
+(defun carleman-array3 (v)
+  (let* ((n (list-length v)) (a (make-array n))
+                             (j (make-array n :initial-element 0)))
+    (setf (aref j 0) 1)
+    (setf (aref a 0) j)
+    (loop for i from 1 below n
+          for y across a
+          with w = (reverse v)
+          do (let ((s (make-array n :initial-element 0)))
+               (setf (aref a i) s)
+               (loop for x on w
+                     for j from (1- n) downto 0
+                     do (setf (aref s j) (loop for e in x
+                                               for f across y
+                                               summing (* e f))))))
+    a))
+
+
+
+; (defun carleman-diag-right (m)
+;   (let* ((n (list-length m))
+;          (v (make-array n))
+;          (r (make-array n :initial-element 0)))
+;     (setf (aref r 0) 1)
+;     (setf (aref v 0) r)
+;     (loop for j from 1 below (1- n)
+;           do (let ((s (make-array n :initial-element 0)))
+;                (setf (aref s j) 1)
+;                (setf (aref v j) s)
+;                (loop for k from (1+ j) below n
+;                      do (setf (aref s k)
+;                               (loop for i from j below k
+;                                     sum (* (aref s i)
+;                                            (aref (aref
+; 
+; 
+;
+(defun carleman-diag (v)
+  (let ((m (carleman v)))
+    ; let M be the Carelman matrix of a function having 0 as a fixed point
+    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
+    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
+    ; Formula (4.16) in "Continuous time evolution form iterated maps and
+    ; Carleman linearization" (Gralewicz and Kowalski)
+    (loop for NIL in v
+          for i from 0
+          with d = (cadr v)
+          for d1 = 1 then (* d1 d)
+          ; transpose matrix m to z and iterate on rows of z
+          for z = (cdr (apply #'mapcar #'list m)) then (mapcar #'cdr (cdr z))
+          collect (loop with x = (list 1)
+                        for y = x then (cdr y)
+                        for u in z
+                        for d2 = (* d1 d) then (* d2 d)
+                        do (setf (cdr y)
+                                 (list (/ (loop for e in x
+                                                for f in u
+                                                summing (* e f))
+                                          (- d1 d2))))
+                        finally (loop repeat i do (setf x (cons 0 x)))
+                                (return x)))))
+
+; Formula (4.17) - but there seems to be some misprint in the PDF and
+; the sign "-" has been added here; furthermore, since loops in pari-gp
+; only work with increasing values, 'j' has been replaced with 'k-j'
+; in order to make the (original) j go from k-1 down to 1.
+; The case (original) j = 0 has been discarded as useless.
+(defun carleman-diag2 (v)
+  (let ((m (carleman v)))
+    ; let M be the Carelman matrix of a function having 0 as a fixed point
+    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
+    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
+    ; Formula (4.16) in "Continuous time evolution form iterated maps and
+    ; Carleman linearization" (Gralewicz and Kowalski)
+    (loop for NIL in v
+          for i from 0
+          with w = (reverse m)
+          with d = (cadr v)
+          for d1 = 1 then (* d1 d)
+          collect (loop
+                        for x = (list 1)
+                          then (cons 
+                                 (/ (loop for e in x
+                                          for f in (nthcdr j u)
+                                          summing (* e f))
+                                    (- d1 d2)) x)
+                        for u in (nthcdr (- (list-length v) i) w)
+                        for j from i downto 0
+                        for d2 = (/ d1 d) then (/ d2 d)
+                        finally (return x)))))
+(defun carleman-diag3 (v)
+  (let ((m (carleman v)))
+    ; let M be the Carelman matrix of a function having 0 as a fixed point
+    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
+    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
+    ; Formula (4.16) in "Continuous time evolution form iterated maps and
+    ; Carleman linearization" (Gralewicz and Kowalski)
+    (loop for w in m
+          for i from 0
+          for y = (list w) then (cons w y)
+          with d = (cadr v)
+          for d1 = 1 then (* d1 d)
+          collect (loop
+                        for u in y
+                        for x = (list 1)
+                          then (cons 
+                                 (/ (loop for e in x
+                                          for f in (nthcdr j u)
+                                          summing (* e f))
+                                    (- d1 d2)) x)
+                        for j from i downto 0
+                        for d2 = (/ d1 d) then (/ d2 d)
+                        finally (return x)))))
+(defun carleman-diag4 (v)
+  (let ((m (carleman v)))
+    ; let M be the Carelman matrix of a function having 0 as a fixed point
+    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
+    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
+    ; Formula (4.16) in "Continuous time evolution form iterated maps and
+    ; Carleman linearization" (Gralewicz and Kowalski)
+    (loop for w in m
+          for i from 1
+          for y = (list (cdr w)) then (cons (nthcdr i w) y)
+          with d = (cadr v)
+          for d1 = 1 then (* d1 d)
+          collect (loop
+                        for u in y
+                        for x = (list 1)
+                          then (cons 
+                                 (/ (loop for e in x
+                                          for f in u
+                                          summing (* e f))
+                                    (- d1 d2)) x)
+                        for d2 = (/ d1 d) then (/ d2 d)
+                        finally (return x)))))
+
+
+;;; MAXIMA interface
+;;; ================
+(defun $carleman (v)
+  (cons '($matrix simp)
+        (mapcar #'(lambda (x) (cons '(mlist simp) x))
+                (carleman (cdr v)))))
