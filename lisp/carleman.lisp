@@ -86,76 +86,60 @@
 
 
 
-; (defun carleman-diag-right (m)
-;   (let* ((n (list-length m))
-;          (v (make-array n))
-;          (r (make-array n :initial-element 0)))
-;     (setf (aref r 0) 1)
-;     (setf (aref v 0) r)
-;     (loop for j from 1 below (1- n)
-;           do (let ((s (make-array n :initial-element 0)))
-;                (setf (aref s j) 1)
-;                (setf (aref v j) s)
-;                (loop for k from (1+ j) below n
-;                      do (setf (aref s k)
-;                               (loop for i from j below k
-;                                     sum (* (aref s i)
-;                                            (aref (aref
-; 
-; 
-;
-(defun carleman-diag (v)
-  (let ((m (carleman v)))
-    ; let M be the Carelman matrix of a function having 0 as a fixed point
-    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
-    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
-    ; Formula (4.16) in "Continuous time evolution form iterated maps and
-    ; Carleman linearization" (Gralewicz and Kowalski)
-    (loop for NIL in v
-          for i from 0
-          with d = (cadr v)
-          for d1 = 1 then (* d1 d)
-          ; transpose matrix m to z and iterate on rows of z
-          for z = (cdr (apply #'mapcar #'list m)) then (mapcar #'cdr (cdr z))
-          collect (loop with x = (list 1)
-                        for y = x then (cdr y)
-                        for u in z
-                        for d2 = (* d1 d) then (* d2 d)
-                        do (setf (cdr y)
-                                 (list (/ (loop for e in x
-                                                for f in u
-                                                summing (* e f))
-                                          (- d1 d2))))
-                        finally (loop repeat i do (setf x (cons 0 x)))
-                                (return x)))))
+; let M be the Carelman matrix of a function having 0 as a fixed point
+; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
+; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
+; Formula (4.16) in "Continuous time evolution form iterated maps and
+; Carleman linearization" (Gralewicz and Kowalski)
+(defun carleman-diag (m d)
+  (loop for NIL in m
+        for i from 0
+        for d1 = 1 then (* d1 d)
+        ; transpose matrix m to z and iterate on rows of z
+        for z = (cdr (apply #'mapcar #'list m)) then (mapcar #'cdr (cdr z))
+        collect (loop with x = (list 1)
+                      for y = x then (cdr y)
+                      for u in z
+                      for d2 = (* d1 d) then (* d2 d)
+                      do (setf (cdr y)
+                               (list (/ (loop for e in x
+                                              for f in u
+                                              summing (* e f))
+                                        (- d1 d2))))
+                      finally (loop repeat i do (setf x (cons 0 x)))
+                              (return x))))
 
 ; Formula (4.17) - but there seems to be some misprint in the PDF and
-; the sign "-" has been added here; furthermore, since loops in pari-gp
-; only work with increasing values, 'j' has been replaced with 'k-j'
-; in order to make the (original) j go from k-1 down to 1.
-; The case (original) j = 0 has been discarded as useless.
-(defun carleman-diag2 (v)
-  (let ((m (carleman v)))
-    ; let M be the Carelman matrix of a function having 0 as a fixed point
-    ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
-    ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
-    ; Formula (4.16) in "Continuous time evolution form iterated maps and
-    ; Carleman linearization" (Gralewicz and Kowalski)
-    (loop for w in m
-          for i from 1
-          for y = (list (cdr w)) then (cons (nthcdr i w) y)
-          with d = (cadr v)
-          for d1 = 1 then (* d1 d)
-          collect (loop
-                        for u in y
-                        for x = (list 1)
-                          then (cons 
-                                 (/ (loop for e in x
-                                          for f in u
-                                          summing (* e f))
-                                    (- d1 d2)) x)
-                        for d2 = (/ d1 d) then (/ d2 d)
-                        finally (return x)))))
+; the sign "-" has been added here
+; Instead of returning the true matrix:
+;
+;      (a1 a2 a3 a4 … )
+;      (b1 b2 b3 b4 … )
+;      (c1 c2 c3 c4 … )
+;      (d1 d2 d3 d4 … )
+;
+; a partial computation of the transpose is returned:
+;
+;      (a1)
+;      (a2 b2)
+;      (a3 b3 c3)
+;      (a4 b4 c4 … )
+;
+(defun carleman-diag2 (m d)
+  (loop for w in m
+        for i from 1
+        for y = (list (cdr w)) then (cons (nthcdr i w) y)
+        for d1 = 1 then (* d1 d)
+        collect (loop
+                      for u in y
+                      for x = (list 1)
+                        then (cons 
+                               (/ (loop for e in x
+                                        for f in u
+                                        summing (* e f))
+                                  (- d1 d2)) x)
+                      for d2 = (/ d1 d) then (/ d2 d)
+                      finally (return x))))
 
 
 ;;; MAXIMA interface
