@@ -132,7 +132,7 @@
         for d1 = 1 then (* d1 d)
         collect (loop
                       for u in y
-                      for x = (list 1)
+                      for x = '(1) ; replace with (list 1) if 0's to be appended later
                         then (cons 
                                (/ (loop for e in x
                                         for f in u
