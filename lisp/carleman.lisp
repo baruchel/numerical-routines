@@ -91,7 +91,7 @@
 ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
 ; Formula (4.16) in "Continuous time evolution form iterated maps and
 ; Carleman linearization" (Gralewicz and Kowalski)
-(defun carleman-diag (m d)
+(defun carleman-diag-right (m d)
   (loop for NIL in m
         for i from 0
         for d1 = 1 then (* d1 d)
@@ -125,14 +125,14 @@
 ;      (a3 b3 c3)
 ;      (a4 b4 c4 … )
 ;
-(defun carleman-diag2 (m d)
+(defun carleman-diag-left-partial (m d)
   (loop for w in m
         for i from 1
         for y = (list (cdr w)) then (cons (nthcdr i w) y)
         for d1 = 1 then (* d1 d)
         collect (loop
                       for u in y
-                      for x = '(1) ; replace with (list 1) if 0's to be appended later
+                      for x = '(1)
                         then (cons 
                                (/ (loop for e in x
                                         for f in u
@@ -140,6 +140,29 @@
                                   (- d1 d2)) x)
                       for d2 = (/ d1 d) then (/ d2 d)
                       finally (return x))))
+
+; return only row 2 of the left matrix
+(defun carleman-diag-left-row2 (m d)
+  (cons 0 (mapcar #'cadr (cdr (carleman-diag-left-partial m d)))))
+
+(defun carleman-diag-left (m d)
+  (apply #'mapcar #'list
+    (loop for w in m
+          for i from 1
+          for y = (list (cdr w)) then (cons (nthcdr i w) y)
+          for d1 = 1 then (* d1 d)
+          for r = (cdar m) then (cdr r) ; exactly the required number of 0's !!!
+          collect (loop with z = (list 1)
+                        for u in y
+                        for x = z
+                          then (cons 
+                                 (/ (loop for e in x
+                                          for f in u
+                                          summing (* e f))
+                                    (- d1 d2)) x)
+                        for d2 = (/ d1 d) then (/ d2 d)
+                        finally (setf (cdr z) r)
+                                (return x)))))
 
 
 ;;; MAXIMA interface
