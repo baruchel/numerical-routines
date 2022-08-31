@@ -164,6 +164,27 @@
                         finally (setf (cdr z) r)
                                 (return x)))))
 
+(defun carleman-precompile-plan (v)
+  (let ((m (carleman v))
+        (d (cadr v)))
+    (cons (carleman-diag-left-row2 m d)
+          (list (apply #'mapcar #'list (carleman-diag-right m d))))))
+
+
+; replace previous derivate by d2 in precompiled plan
+(defun carleman-process-plan (p d2)
+  (loop with v = (loop for k in (car p)
+                       for y = 1 then (* y d2)
+                       collect (* k y))
+        for r in (cadr p)
+        collect (loop for a in v
+                      for b in r
+                summing (* a b))))
+
+
+
+
+
 
 ;;; MAXIMA interface
 ;;; ================
