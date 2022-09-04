@@ -181,6 +181,19 @@
                       for b in r
                 summing (* a b))))
 
+; same as previous but using mpfr-gloat type for d2
+; (defun carleman-process-plan-mpfr (p d2)
+;   (loop with v = (loop for k in (car p)
+;                        for y = (sb-mpfr:coerce 1 'sb-mpfr:mpfr-float)
+;                                then (sb-mpfr:mul y d2)
+;                        collect (sb-mpfr:mul (sb-mpfr:coerce k 'sb-mpfr:mpfr-float) y))
+;         for r in (cadr p)
+;         collect (loop for a in v
+;                       for b in r
+;                       with s = (sb-mpfr:coerce 0 'sb-mpfr:mpfr-float)
+;                       do (setf s (sb-mpfr:add s 
+;                             (sb-mpfr:mul a (sb-mpfr:coerce b 'sb-mpfr:mpfr-float))))
+;                       finally (return s))))
 
 
 
