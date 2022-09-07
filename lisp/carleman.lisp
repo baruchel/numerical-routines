@@ -181,7 +181,7 @@
                       for b in r
                 summing (* a b))))
 
-; same as previous but using mpfr-gloat type for d2
+; same as previous but using mpfr-float type for d2
 ; (defun carleman-process-plan-mpfr (p d2)
 ;   (loop with v = (loop for k in (car p)
 ;                        for y = (sb-mpfr:coerce 1 'sb-mpfr:mpfr-float)
