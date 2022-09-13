@@ -1,14 +1,15 @@
-thiele(u,v) := block([rho:makelist(
-                            makelist(v[i], length(v)-i+1),
-                            i, length(v)), a:0],
-                 for i:1 thru length(rho)-1
-                  do rho[i][2]: (u[i]-u[i+1]) / (rho[i][1] - rho[i+1][1]),
-                 for i:3 thru length(rho)
-                  do (for j:1 thru length(rho)-i+1
-                       do rho[j][i]: (u[j]-u[j+i-1])
-                                       / (rho[j][i-1]-rho[j+1][i-1])
-                                       + rho[j+1][i-2]),
-                 rho: rho[1],
-                 for i:length(rho) thru 3 step -1
-                  do a: ratsimp(( 'x - u[i-1])/(rho[i]-rho[i-2]+a)),
-                 ratsimp( v[1] + ( 'x - u[1] ) / (rho[2] + a) ))$
+/* Thiele's interpolation formula */
+thiele(u, v) := block([rho:makelist(
+                             makelist(v[i], length(v)-i+1),
+                             i, length(v)), a:0],
+                  for i:1 thru length(rho)-1
+                   do rho[i][2]: (u[i]-u[i+1]) / (rho[i][1] - rho[i+1][1]),
+                  for i:3 thru length(rho)
+                   do (for j:1 thru length(rho)-i+1
+                        do rho[j][i]: (u[j]-u[j+i-1])
+                                        / (rho[j][i-1]-rho[j+1][i-1])
+                                        + rho[j+1][i-2]),
+                  rho: rho[1],
+                  for i:length(rho) thru 3 step -1
+                   do a: ratsimp(( 'x - u[i-1])/(rho[i]-rho[i-2]+a)),
+                  ratsimp( v[1] + ( 'x - u[1] ) / (rho[2] + a) ))$

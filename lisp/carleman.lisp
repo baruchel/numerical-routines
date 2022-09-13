@@ -86,7 +86,7 @@
 
 
 
-; let M be the Carelman matrix of a function having 0 as a fixed point
+; let M be the Carleman matrix of a function having 0 as a fixed point
 ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
 ; that M = V^(-1) . L . V with L a diagonal matrix of eigenvalues
 ; Formula (4.16) in "Continuous time evolution form iterated maps and
@@ -97,6 +97,7 @@
         for d1 = 1 then (* d1 d)
         ; transpose matrix m to z and iterate on rows of z
         for z = (cdr (apply #'mapcar #'list m)) then (mapcar #'cdr (cdr z))
+        for q = NIL then (cons 0 q)
         collect (loop with x = (list 1)
                       for y = x then (cdr y)
                       for u in z
@@ -106,8 +107,7 @@
                                               for f in u
                                               summing (* e f))
                                         (- d1 d2))))
-                      finally (loop repeat i do (setf x (cons 0 x)))
-                              (return x))))
+                      finally (return (append q x)))))
 
 ; Formula (4.17) - but there seems to be some misprint in the PDF and
 ; the sign "-" has been added here
