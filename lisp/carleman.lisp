@@ -93,7 +93,6 @@
 ; Carleman linearization" (Gralewicz and Kowalski)
 (defun carleman-diag-right (m d)
   (loop for NIL in m
-        for i from 0
         for d1 = 1 then (* d1 d)
         ; transpose matrix m to z and iterate on rows of z
         for z = (cdr (apply #'mapcar #'list m)) then (mapcar #'cdr (cdr z))
@@ -102,11 +101,10 @@
                       for y = x then (cdr y)
                       for u in z
                       for d2 = (* d1 d) then (* d2 d)
-                      do (setf (cdr y)
-                               (list (/ (loop for e in x
-                                              for f in u
-                                              summing (* e f))
-                                        (- d1 d2))))
+                      do (push (/ (loop for e in x
+                                        for f in u
+                                        summing (* e f))
+                                  (- d1 d2)) (cdr y))
                       finally (return (append q x)))))
 
 ; Formula (4.17) - but there seems to be some misprint in the PDF and
