@@ -44,7 +44,7 @@
                               (addn
                                   (loop for a in x
                                         for b in u
-                                        collect (mul a b))) s))
+                                        collect (mul a b)) NIL) s))
                        finally (return s))
           collect u)))
 
@@ -66,7 +66,7 @@
                                    (addn
                                        (loop for e in x
                                              for f in u
-                                             collect (mul e f)))
+                                             collect (mul e f)) NIL)
                                    (sub d1 d2)) x)
                         for d2 = (div d1 d) then (div d2 d)
                         finally (setf (cdr z) r)
@@ -97,7 +97,7 @@
                                  (addn
                                      (loop for e in x
                                            for f in u
-                                           collect (mul e f)))
+                                           collect (mul e f)) NIL)
                                  (sub d1 d2)) (cdr y))
                       finally (return (append q x)))))
 
@@ -110,7 +110,7 @@
 (defun $carleman (v)
   (simplifya (cons '($matrix)
         (mapcar #'(lambda (x) (simplify (cons '(mlist) x)))
-                (carleman (cdr v))))))
+                (carleman (cdr v)))) NIL))
 
 ; Let M be the Carleman matrix of a function having 0 as a fixed point
 ; (ie. f(0)=0) and f'(0) not in {0, 1} ; now, V(M) is such
@@ -130,13 +130,13 @@
       ; left part
       (simplifya
         (cons '($matrix) (mapcar #'(lambda (x) (simplify (cons '(mlist) x)))
-                              (carleman-diag-left m d))))
+                              (carleman-diag-left m d))) NIL)
       ; diagonal matrix
       (simplifya
         (cons '($matrix) (mapcar #'(lambda (x) (simplify (cons '(mlist) x)))
-                              (carleman-diag-middle m d))))
+                              (carleman-diag-middle m d))) NIL)
       ; right part
       (simplifya
         (cons '($matrix) (mapcar #'(lambda (x) (simplify (cons '(mlist) x)))
-                              (carleman-diag-right m d))))))))
+                              (carleman-diag-right m d))) NIL)) NIL)))
   
